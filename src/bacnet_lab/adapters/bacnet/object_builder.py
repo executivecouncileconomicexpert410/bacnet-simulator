@@ -3,29 +3,82 @@ from __future__ import annotations
 from bacnet_lab.domain.enums import PointType
 from bacnet_lab.domain.models.device import Point
 
-BACNET_OBJECT_TYPE_MAP = {
-    PointType.ANALOG_INPUT: "analogInput",
-    PointType.ANALOG_OUTPUT: "analogOutput",
-    PointType.ANALOG_VALUE: "analogValue",
-    PointType.BINARY_INPUT: "binaryInput",
-    PointType.BINARY_OUTPUT: "binaryOutput",
-    PointType.BINARY_VALUE: "binaryValue",
-    PointType.MULTI_STATE_INPUT: "multiStateInput",
-    PointType.MULTI_STATE_OUTPUT: "multiStateOutput",
-    PointType.MULTI_STATE_VALUE: "multiStateValue",
-}
 
+def build_local_object(point: Point):
+    """Create a BAC0 ObjectFactory for a point using the BAC0 factory API.
 
-def build_local_object_config(point: Point) -> dict:
-    """Build the configuration dict used by BAC0 to create a local object."""
-    obj_type = BACNET_OBJECT_TYPE_MAP.get(point.object_type, point.object_type.value)
-    config = {
-        "object_type": obj_type,
-        "instance": point.object_instance,
+    Must be called within a running asyncio event loop (bacpypes3 requirement).
+    Returns an ObjectFactory instance that can be added to a BAC0 application.
+    """
+    from BAC0.core.devices.local.factory import (
+        analog_input,
+        analog_output,
+        analog_value,
+        binary_input,
+        binary_output,
+        binary_value,
+        multistate_input,
+        multistate_output,
+        multistate_value,
+    )
+
+    common = {
         "name": point.object_name,
-        "description": point.description,
-        "presentValue": point.present_value,
+        "instance": point.object_instance,
+        "description": point.description or "",
     }
-    if point.units:
-        config["units"] = point.units
-    return config
+
+    match point.object_type:
+        case PointType.ANALOG_INPUT:
+            return analog_input(
+                **common,
+                presentValue=float(point.present_value) if not isinstance(point.present_value, bool) else 0.0,
+                properties={"units": point.units or "noUnits"},
+            )
+        case PointType.ANALOG_OUTPUT:
+            return analog_output(
+                **common,
+                presentValue=float(point.present_value) if not isinstance(point.present_value, bool) else 0.0,
+                properties={"units": point.units or "noUnits"},
+            )
+        case PointType.ANALOG_VALUE:
+            return analog_value(
+                **common,
+                presentValue=float(point.present_value) if not isinstance(point.present_value, bool) else 0.0,
+                properties={"units": point.units or "noUnits"},
+                is_commandable=True,
+            )
+        case PointType.BINARY_INPUT:
+            return binary_input(
+                **common,
+                presentValue="active" if point.present_value else "inactive",
+            )
+        case PointType.BINARY_OUTPUT:
+            return binary_output(
+                **common,
+                presentValue="active" if point.present_value else "inactive",
+            )
+        case PointType.BINARY_VALUE:
+            return binary_value(
+                **common,
+                presentValue="active" if point.present_value else "inactive",
+                is_commandable=True,
+            )
+        case PointType.MULTI_STATE_INPUT:
+            return multistate_input(
+                **common,
+                presentValue=int(point.present_value) if not isinstance(point.present_value, bool) else 1,
+            )
+        case PointType.MULTI_STATE_OUTPUT:
+            return multistate_output(
+                **common,
+                presentValue=int(point.present_value) if not isinstance(point.present_value, bool) else 1,
+            )
+        case PointType.MULTI_STATE_VALUE:
+            return multistate_value(
+                **common,
+                presentValue=int(point.present_value) if not isinstance(point.present_value, bool) else 1,
+                is_commandable=True,
+            )
+        case _:
+            raise ValueError(f"Unsupported point type: {point.object_type}")

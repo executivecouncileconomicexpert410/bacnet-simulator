@@ -6,7 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
+# Copy project metadata first (better layer caching)
+COPY pyproject.toml README.md LICENSE ./
+
+# Copy source and config
 COPY src/ src/
 COPY config/ config/
 

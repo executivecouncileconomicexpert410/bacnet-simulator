@@ -26,13 +26,23 @@ python -m bacnet_lab
 
 Open http://localhost:8080/ui for the web dashboard.
 
-### Docker
+### Docker (Linux — production)
 
 ```bash
-docker compose up --build
+cp .env.example .env
+# Edit .env to set BACNET_LAB_AUTH_USERNAME and BACNET_LAB_AUTH_PASSWORD
+docker compose up -d --build
 ```
 
-> **Note**: `network_mode: host` is required for BACnet UDP broadcast. This works on Linux only. On macOS/Windows Docker Desktop, BACnet devices won't be discoverable from the host network.
+### Docker (macOS/Windows — dev only)
+
+`network_mode: host` is required for BACnet UDP broadcast but only works on Linux. For local dev, use the override file which switches to bridge mode with port mapping:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+BACnet devices won't be discoverable from the host network, but the API and UI work normally.
 
 ## Architecture
 
@@ -97,6 +107,12 @@ Configuration via `config/settings.yaml` or environment variables prefixed with 
 | `BACNET_LAB_BACNET_PORT_START` | `47808` | First BACnet UDP port |
 | `BACNET_LAB_DB_PATH` | `bacnet_lab.db` | SQLite database path |
 | `BACNET_LAB_LOG_LEVEL` | `INFO` | Log level |
+| `BACNET_LAB_AUTH_USERNAME` | *(empty)* | HTTP Basic Auth username |
+| `BACNET_LAB_AUTH_PASSWORD` | *(empty)* | HTTP Basic Auth password |
+
+## Authentication
+
+Set `BACNET_LAB_AUTH_USERNAME` and `BACNET_LAB_AUTH_PASSWORD` in your `.env` to enable HTTP Basic Auth. The browser shows a native login popup (same UX as Apache htaccess). When both variables are empty, auth is disabled.
 
 ## Tech Stack
 
