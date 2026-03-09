@@ -5,10 +5,41 @@ build-backend = "hatchling.build"
 [project]
 name = "bacnet-lab"
 version = "0.1.0"
-description = "Simulate a small BACnet/IP network for testing and demo purposes"
+description = "Open-source BACnet/IP network simulator with 7 virtual HVAC devices, REST API, web dashboard, and Docker deployment"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
+keywords = [
+    "bacnet",
+    "bacnet-ip",
+    "bacnet-simulator",
+    "building-automation",
+    "bms",
+    "hvac",
+    "simulator",
+    "iot",
+    "smart-building",
+    "scada",
+    "bac0",
+    "bacpypes",
+    "building-management",
+    "virtual-device",
+    "testing",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Home Automation",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Testing",
+    "Framework :: FastAPI",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "BAC0>=24.0.0",
     "fastapi>=0.115.0",

@@ -1,64 +1,84 @@
 # BACnet Lab
 
-Simulate a small BACnet/IP network (7 devices, ~50 points) for testing and demo purposes. Deployable via Docker Compose on a Linux VM.
+**Open-source BACnet/IP simulator** with 7 virtual HVAC devices, a REST API, real-time web dashboard, and Docker Compose deployment. No physical hardware required.
+
+Built for developers building BMS integrations, SCADA connectors, or building analytics platforms who need a realistic BACnet test network running in seconds.
+
+## Why BACnet Lab?
+
+Testing BACnet integrations typically requires expensive physical hardware and complex network setups. BACnet Lab gives you a fully functional BACnet/IP network on your development machine:
+
+- **Instant setup** — `docker compose up` and you have 7 BACnet devices with ~50 points
+- **Realistic behavior** — dynamic HVAC scenarios simulate temperature variations, alarm conditions, and device failures
+- **API-first** — REST API for programmatic control, perfect for CI/CD pipelines and automated testing
+- **Event-driven** — HMAC-signed webhooks push real-time events to your systems
+- **Observable** — web dashboard shows live device state, events, and alarms
 
 ## Features
 
-- **7 BACnet/IP devices** — AHU, 2 FCUs, thermostat, zone controller, outdoor temp sensor, CO2 sensor
-- **~50 BACnet points** — analog inputs/outputs/values, binary I/O, multi-state values
-- **Web dashboard** — real-time device monitoring with HTMX auto-refresh
-- **REST API** — full CRUD for devices, scenarios, endpoints, events
-- **4 simulation scenarios** — HVAC day/night cycle, alarm simulation, device offline, manual override
-- **Webhook delivery** — HMAC-SHA256 signed event delivery to external systems
-- **SQLite persistence** — lightweight, zero-config database
+| Feature | Description |
+|---------|-------------|
+| **7 Virtual BACnet/IP Devices** | AHU, 2 FCUs, thermostat, zone controller, outdoor temp sensor, CO2 sensor |
+| **~50 BACnet Points** | Analog inputs/outputs/values, binary I/O, multi-state values |
+| **REST API** | Full CRUD for devices, scenarios, webhook endpoints, events |
+| **Web Dashboard** | Real-time monitoring with HTMX auto-refresh (zero JS build) |
+| **4 Simulation Scenarios** | HVAC day/night cycle, alarm simulation, device offline, manual override |
+| **Webhook Events** | HMAC-SHA256 signed delivery to external systems |
+| **Docker Compose** | One-command deployment on Linux with `network_mode: host` |
+| **SQLite Persistence** | Zero-configuration database |
+| **HTTP Basic Auth** | Optional authentication via environment variables |
 
 ## Quick Start
 
-### Local Development
+### Docker (recommended)
 
 ```bash
-# Install dependencies
-pip install -e ".[dev]"
-
-# Run the application
-python -m bacnet_lab
+git clone https://github.com/YOUR_USERNAME/bacnet-lab.git
+cd bacnet-lab
+docker compose up -d --build
 ```
 
 Open http://localhost:8080/ui for the web dashboard.
 
-### Docker (Linux — production)
+> **Note:** `network_mode: host` is required for BACnet UDP broadcast and only works on Linux. For macOS/Windows development, see the [Getting Started guide](docs/getting-started.md#docker-macoswindows).
+
+### Local Development
 
 ```bash
-cp .env.example .env
-# Edit .env to set BACNET_LAB_AUTH_USERNAME and BACNET_LAB_AUTH_PASSWORD
-docker compose up -d --build
+pip install -e ".[dev]"
+python -m bacnet_lab
 ```
 
-### Docker (macOS/Windows — dev only)
+See the full [Getting Started guide](docs/getting-started.md) for detailed instructions.
 
-`network_mode: host` is required for BACnet UDP broadcast but only works on Linux. For local dev, use the override file which switches to bridge mode with port mapping:
+## Simulated Devices
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-```
+| Device | ID | Points | Description |
+|--------|----|--------|-------------|
+| AHU-01 | 1001 | 12 | Air Handling Unit — supply/return/mixed air temps, valves, fans, pressure |
+| FCU-01 | 2001 | 7 | Fan Coil Unit Zone 1 — room temp, valve, fan speed |
+| FCU-02 | 2002 | 7 | Fan Coil Unit Zone 2 — room temp, valve, fan speed |
+| TSTAT-01 | 3001 | 6 | Thermostat Lobby — temp, setpoints, occupancy |
+| ZC-01 | 4001 | 7 | Zone Controller — damper, airflow, CO2, occupancy |
+| OAT-01 | 5001 | 2 | Outdoor Temperature Sensor |
+| CO2-01 | 5002 | 3 | CO2 Sensor |
 
-BACnet devices won't be discoverable from the host network, but the API and UI work normally.
+Each device runs on a dedicated UDP port and is fully discoverable on the BACnet network. Device definitions are YAML files in `config/devices/` — easy to add or modify.
 
-## Architecture
+See [Devices documentation](docs/devices.md) for full point lists and custom device creation.
 
-Hexagonal architecture (ports & adapters) in a modular monolith:
+## Simulation Scenarios
 
-```
-Domain (models, events, enums)
-    ↕
-Ports (ABC interfaces)
-    ↕
-Application Services (use cases)
-    ↕
-Adapters (BACnet/BAC0, HTTP/FastAPI, SQLite, Webhooks)
-```
+| Scenario | Description |
+|----------|-------------|
+| **HVAC Day/Night Cycle** | Compressed 24h simulation — outdoor temp varies, valves/fans respond, occupancy changes |
+| **Cyclic High Temp Alarm** | Periodically raises and clears a supply air temperature alarm |
+| **Device Offline** | Simulates a device going offline and recovering |
+| **Manual Override** | Overrides a point value for a configurable duration |
 
-## API Endpoints
+Start/stop scenarios via the REST API or web dashboard. See [Scenarios documentation](docs/scenarios.md).
+
+## REST API
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -76,50 +96,58 @@ Adapters (BACnet/BAC0, HTTP/FastAPI, SQLite, Webhooks)
 | GET | `/api/events` | Recent events |
 | GET | `/api/alarms` | Recent alarms |
 
-## Devices
+See the full [API Reference](docs/api.md) for request/response examples.
 
-| Device | ID | Points | Description |
-|--------|----|--------|-------------|
-| AHU-01 | 1001 | 12 | Air Handling Unit |
-| FCU-01 | 2001 | 7 | Fan Coil Unit Zone 1 |
-| FCU-02 | 2002 | 7 | Fan Coil Unit Zone 2 |
-| TSTAT-01 | 3001 | 6 | Thermostat Lobby |
-| ZC-01 | 4001 | 7 | Zone Controller |
-| OAT-01 | 5001 | 2 | Outdoor Temp Sensor |
-| CO2-01 | 5002 | 3 | CO2 Sensor |
+## Use Cases
 
-## Scenarios
+- **BMS integration testing** — validate your Building Management System against realistic BACnet devices
+- **SCADA development** — build and test SCADA connectors without physical hardware
+- **BACnet client testing** — verify your BACnet client handles discovery, reads, writes, and COV correctly
+- **Building analytics prototyping** — develop analytics on realistic HVAC data streams
+- **CI/CD pipelines** — spin up a BACnet network in your test environment
+- **Training and demos** — demonstrate HVAC automation behavior without physical equipment
+- **Webhook integration testing** — verify your event handlers with real BACnet events
 
-- **HVAC Day/Night Cycle** — Compressed 24h simulation with temperature, valve, and fan variations
-- **Cyclic High Temp Alarm** — Periodically raises and clears a supply air temperature alarm
-- **Temporary Device Offline** — Simulates a device going offline and recovering
-- **Manual Override** — Overrides a point value for a configurable duration
+## Architecture
 
-## Configuration
+Hexagonal architecture (ports & adapters) for clean testability and extensibility:
 
-Configuration via `config/settings.yaml` or environment variables prefixed with `BACNET_LAB_`:
+```
+Domain (models, events, enums)
+    |
+Ports (abstract interfaces)
+    |
+Application Services (use cases)
+    |
+Adapters (BACnet/BAC0, HTTP/FastAPI, SQLite, Webhooks)
+```
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BACNET_LAB_HTTP_HOST` | `0.0.0.0` | HTTP bind address |
-| `BACNET_LAB_HTTP_PORT` | `8080` | HTTP port |
-| `BACNET_LAB_BACNET_IP` | `0.0.0.0` | BACnet bind IP |
-| `BACNET_LAB_BACNET_PORT_START` | `47808` | First BACnet UDP port |
-| `BACNET_LAB_DB_PATH` | `bacnet_lab.db` | SQLite database path |
-| `BACNET_LAB_LOG_LEVEL` | `INFO` | Log level |
-| `BACNET_LAB_AUTH_USERNAME` | *(empty)* | HTTP Basic Auth username |
-| `BACNET_LAB_AUTH_PASSWORD` | *(empty)* | HTTP Basic Auth password |
-
-## Authentication
-
-Set `BACNET_LAB_AUTH_USERNAME` and `BACNET_LAB_AUTH_PASSWORD` in your `.env` to enable HTTP Basic Auth. The browser shows a native login popup (same UX as Apache htaccess). When both variables are empty, auth is disabled.
+See [Architecture documentation](docs/architecture.md) for details.
 
 ## Tech Stack
 
-- Python 3.11+, BAC0 (BACpypes3), FastAPI, Uvicorn
-- HTMX + Jinja2 + Pico CSS (zero JS build)
-- SQLite via aiosqlite
-- httpx for webhook delivery
+- **Python 3.11+** with async/await throughout
+- **BAC0** (BACpypes3) — BACnet/IP protocol stack
+- **FastAPI** + Uvicorn — REST API
+- **HTMX** + Jinja2 + Pico CSS — web dashboard (zero JS build)
+- **SQLite** via aiosqlite — persistence
+- **httpx** — async webhook delivery
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Getting Started](docs/getting-started.md) | Installation, deployment, first steps |
+| [Devices](docs/devices.md) | Simulated devices, points, custom device creation |
+| [Scenarios](docs/scenarios.md) | Simulation scenarios and parameters |
+| [API Reference](docs/api.md) | REST API with request/response examples |
+| [Webhooks](docs/webhooks.md) | Event delivery, signatures, payload examples |
+| [Configuration](docs/configuration.md) | Settings, environment variables, authentication |
+| [Architecture](docs/architecture.md) | Project structure and design decisions |
+
+## Contributing
+
+Contributions are welcome. Please open an issue to discuss your idea before submitting a PR.
 
 ## License
 
