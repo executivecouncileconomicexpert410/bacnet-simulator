@@ -43,6 +43,10 @@ class BAC0Engine(DeviceNetworkPort):
                 if getattr(instance, "_initialized", False):
                     break
                 await asyncio.sleep(0.1)
+            else:
+                raise TimeoutError(
+                    f"BAC0 instance for device {device.device_id} did not initialize within 5s"
+                )
 
             # Create local BACnet objects for each point
             for point in device.points:
@@ -99,12 +103,15 @@ class BAC0Engine(DeviceNetworkPort):
                 f"Point {object_type}:{instance} not found on device {device_id}"
             )
 
-        # Update both the BAC0 local object and in-memory domain model
+        # Update the BAC0 local object — let errors propagate so callers
+        # don't update domain state with a value the device never received.
         try:
             bac0_obj = bac0_instance[point.object_name]
             bac0_obj.presentValue = value
         except (KeyError, AttributeError) as e:
-            logger.warning("Could not update BAC0 object %s: %s", point.object_name, e)
+            raise ValueError(
+                f"Could not update BAC0 object {point.object_name}: {e}"
+            ) from e
 
         point.present_value = value
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import uuid
 from dataclasses import asdict
@@ -48,21 +49,28 @@ class EventService:
 
     async def _deliver_to_endpoints(self, event: ReplicationEvent) -> None:
         endpoints = await self._endpoint_repo.list_all()
-        for endpoint in endpoints:
-            if not endpoint.enabled:
-                continue
-            if endpoint.event_types and event.event_type not in endpoint.event_types:
-                continue
+        targets = [
+            ep for ep in endpoints
+            if ep.enabled and (not ep.event_types or event.event_type in ep.event_types)
+        ]
+        if not targets:
+            return
+
+        async def _deliver_one(endpoint):  # noqa: ANN001
             try:
                 success = await self._delivery.deliver(event, endpoint)
                 await self._endpoint_repo.update_delivery_status(endpoint.id, success)
-                if success:
-                    await self._event_log_repo.mark_delivered(event.id)
+                return success
             except Exception as e:
                 logger.error(
                     "Failed to deliver event %s to %s: %s",
                     event.id[:8], endpoint.url, e,
                 )
+                return False
+
+        results = await asyncio.gather(*[_deliver_one(ep) for ep in targets])
+        if all(results):
+            await self._event_log_repo.mark_delivered(event.id)
 
     async def list_recent_events(self, limit: int = 50) -> list[ReplicationEvent]:
         return await self._event_log_repo.list_recent(limit)

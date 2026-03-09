@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from bacnet_lab.adapters.scenarios.base import BaseScenario
 from bacnet_lab.domain.models.scenario import ScenarioParameter
+
+logger = logging.getLogger(__name__)
 
 
 class ManualOverrideScenario(BaseScenario):
@@ -30,14 +33,15 @@ class ManualOverrideScenario(BaseScenario):
         # Apply override
         try:
             await self._device_service.write_point_by_name(device_id, point_name, override_val)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error("Manual override failed for %s: %s", point_name, e)
+            return
 
-        await asyncio.sleep(hold_dur)
-
-        # Release override
-        if self.is_running:
+        try:
+            await asyncio.sleep(hold_dur)
+        finally:
+            # Always release override, even on cancellation
             try:
                 await self._device_service.write_point_by_name(device_id, point_name, original_val)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error("Failed to release override for %s: %s", point_name, e)
