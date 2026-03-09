@@ -1,4 +1,4 @@
-# BACnet Lab
+# BACnet Network Simulator
 
 **Open-source BACnet/IP simulator** with 7 virtual HVAC devices, a REST API, real-time web dashboard, and Docker Compose deployment. No physical hardware required.
 
