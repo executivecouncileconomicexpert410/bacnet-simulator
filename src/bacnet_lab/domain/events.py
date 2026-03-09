@@ -49,6 +49,13 @@ class AlarmCleared(DomainEvent):
 
 
 @dataclass
+class TelemetrySnapshotTaken(DomainEvent):
+    device_id: int = 0
+    points: dict = field(default_factory=dict)
+    event_type: EventType = field(default=EventType.TELEMETRY_SNAPSHOT, init=False)
+
+
+@dataclass
 class ScenarioLifecycleChanged(DomainEvent):
     scenario_id: str = ""
     new_status: ScenarioStatus = ScenarioStatus.IDLE

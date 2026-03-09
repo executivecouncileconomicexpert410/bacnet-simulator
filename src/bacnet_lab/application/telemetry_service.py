@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
 
-from bacnet_lab.domain.events import PointValueChanged
-from bacnet_lab.domain.models.event import TelemetrySnapshot
+from bacnet_lab.domain.events import PointValueChanged, TelemetrySnapshotTaken
 from bacnet_lab.domain.value_objects import PointValue
 from bacnet_lab.ports.event_publisher import EventPublisherPort
 
@@ -16,7 +14,7 @@ class TelemetryService:
     def __init__(
         self,
         event_publisher: EventPublisherPort,
-        snapshot_interval: float = 30.0,
+        snapshot_interval: float = 300.0,
     ) -> None:
         self._events = event_publisher
         self._snapshot_interval = snapshot_interval
@@ -79,10 +77,11 @@ class TelemetryService:
                     points_data = {}
                     for point in device.points:
                         points_data[point.object_name] = point.present_value
-                    TelemetrySnapshot(
-                        timestamp=datetime.now(timezone.utc),
-                        device_id=device.device_id,
-                        points=points_data,
+                    await self._events.publish(
+                        TelemetrySnapshotTaken(
+                            device_id=device.device_id,
+                            points=points_data,
+                        )
                     )
             except Exception as e:
                 logger.error("Telemetry snapshot error: %s", e)
